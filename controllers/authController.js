@@ -2,6 +2,9 @@ let db = require("../utils/db");
 let argon2 = require("argon2"); // this is the pwd hash tool
 let jwt = require("jsonwebtoken");
 require('dotenv').config(); //come back to this
+
+// AUTHENTACATION: ARE YOU WHO YOU SAY YOU ARE WHEN YOU LOG IN
+
 /**
  * get the username, password, full_name from the body of the request
  * hash the password
@@ -50,12 +53,12 @@ let register = async (request, res) => {
 
 /**
  *  we have a registered, user, and now they want to login
- * if they are good, here's your token, if not, f--- off lol
+ * if they are good, here's your token, if not, ive got nothing for you
  * take in the username and password from the login form (req body)
  * find the user in the database and 
  * we hash that password and compare it to the hash in the database
  * if the hashes match, it's a good password
- * so create a token for this user
+ * so create an unsigned token for this user
  * sign the token - which means we're going to add salt (secret)
  * make the secret in my .env
  */
@@ -83,7 +86,7 @@ let login = (req, res) => {
                 //it comes back as an array with an object, so you have to get the row values by it's index
 
                 let passwordHash = rows[0].password_hash;
-                let full_name = rows[0].full_name;
+                let fullName = rows[0].full_name;
                 let userId = rows[0].id;
 
                 let goodPass = false;
@@ -98,7 +101,7 @@ let login = (req, res) => {
                 if (goodPass) {
                     //make an unsigned token
                     let token = {    // usuallly do as little as possible with this
-                        "full_name": full_name,
+                        "fullName": fullName,
                         "userId": userId
                     }
 
@@ -106,11 +109,11 @@ let login = (req, res) => {
 
                     // now we need to sign the token
                     let signedToken = jwt.sign(token, process.env.JWT_SECRET);
-                    // res.json(signedToken) // show this just for testing
+                    res.json(signedToken) // show this just for testing
 
                     // cannot have line 109 and 113 ran at the same time
 
-                    res.sendStatus(200) // this is what you will send in a real life situation (production)
+                    // res.sendStatus(200) // this is what you will send in a real life situation (production)
 
                 } else {
                     res.sendStatus(400) //
